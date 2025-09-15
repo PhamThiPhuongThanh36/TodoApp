@@ -6,6 +6,6 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "projects")
 data class ProjectEntity(
     @PrimaryKey(autoGenerate = true)
-    val projectId: Int,
+    val projectId: Int? = null,
     val projectName: String
 )
