@@ -27,7 +27,6 @@ import com.example.todoapp.ui.common.OperationCustom
 fun DrawerScreen(
     projectSection: @Composable () -> Unit?,
     onAddNewProject: () -> Unit,
-    onEditProject: () -> Unit,
     onProjectViewByTag: () -> Unit,
     onProjectViewByDueDate: () -> Unit,
     onPomodoroMode: () -> Unit,
@@ -40,6 +39,7 @@ fun DrawerScreen(
             .fillMaxWidth(0.85f)
             .fillMaxHeight()
             .background(Color(0xFFFFFFFF))
+            .statusBarsPadding()
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -99,12 +99,6 @@ fun DrawerScreen(
                 .clickable { onAddNewProject() }
         )
         OperationCustom(
-            R.drawable.ic_edit,
-            text = "Chỉnh sửa danh sách",
-            modifier = Modifier
-                .clickable { onEditProject() }
-        )
-        OperationCustom(
             R.drawable.ic_tag,
             text = "Xem nhiệm vụ theo loại nhãn",
             modifier = Modifier
@@ -157,5 +151,5 @@ fun DrawerScreen(
 @Preview
 @Composable
 fun DrawerScreenPreview() {
-    DrawerScreen({}, {}, {}, {}, {}, {}, {}, {}, {})
+    DrawerScreen({}, {}, {}, {}, {}, {}, {}, {})
 }
