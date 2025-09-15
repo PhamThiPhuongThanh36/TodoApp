@@ -12,7 +12,7 @@ class ListRepository @Inject constructor(
         listDao.insertList(list)
     }
 
-    suspend fun getListsByProjectId(projectId: Int): Flow<List<ListEntity>> {
+    fun getListsByProjectId(projectId: Int): Flow<List<ListEntity>> {
         return listDao.getListsByProjectId(projectId)
     }
 
