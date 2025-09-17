@@ -1,15 +1,18 @@
 package com.example.todoapp.repository
 
 import com.example.todoapp.database.dao.TaskDao
+import com.example.todoapp.database.entities.TagEntity
 import com.example.todoapp.database.entities.TaskEntity
+import com.example.todoapp.database.entities.TaskTagEntity
+import com.example.todoapp.database.entities.TaskWithTags
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class TaskRepository @Inject constructor(
     private val taskDao: TaskDao
 ) {
-    suspend fun insertTask(task: TaskEntity) {
-        taskDao.insertTask(task)
+    suspend fun insertTask(task: TaskEntity): Long {
+        return taskDao.insertTask(task)
     }
 
     fun getTasksByListId(listId: Int): Flow<List<TaskEntity>> {
@@ -24,4 +27,39 @@ class TaskRepository @Inject constructor(
         taskDao.updateTask(task)
     }
 
+    suspend fun updateTaskStatus(taskId: Int, status: Boolean) {
+        taskDao.updateTaskStatus(taskId, status)
+    }
+
+    fun getTaskById(taskId: Int): Flow<TaskEntity?> {
+        return taskDao.getTaskById(taskId)
+    }
+
+    suspend fun insertTag(tag: TagEntity) {
+        taskDao.insertTag(tag)
+    }
+
+    fun getTags(): Flow<List<TagEntity>> {
+        return taskDao.getTags()
+    }
+
+    fun getTasksWithTags(listId: Int): Flow<List<TaskWithTags>> {
+        return taskDao.getTasksWithTags(listId)
+    }
+
+    fun getTaskWithTagsById(taskId: Int): Flow<TaskWithTags?> {
+        return taskDao.getTaskWithTagsById(taskId)
+    }
+
+    suspend fun insertTaskTag(taskTag: TaskTagEntity) {
+        taskDao.insertTaskTag(taskTag)
+    }
+
+    suspend fun deleteTaskTagByTaskId(taskId: Int) {
+        taskDao.deleteTaskTagByTaskId(taskId)
+    }
+
+    fun getTasksByTagId(tagId: Int): Flow<List<TaskWithTags?>> {
+        return taskDao.getTasksByTagId(tagId)
+    }
 }

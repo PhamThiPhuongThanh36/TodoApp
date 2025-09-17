@@ -21,7 +21,7 @@ class ProjectRepository @Inject constructor(
         projectDao.deleteProject(projectId)
     }
 
-    fun getProjectById(projectId: Int): Flow<ProjectEntity> {
+    fun getProjectById(projectId: Int): Flow<ProjectEntity?> {
         return projectDao.getProjectById(projectId)
     }
 }
