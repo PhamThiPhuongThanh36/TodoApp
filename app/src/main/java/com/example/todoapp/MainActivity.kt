@@ -19,6 +19,7 @@ import com.example.todoapp.ui.main.HomeScreen
 import com.example.todoapp.ui.theme.ToDoAppTheme
 import com.example.todoapp.viewmodel.ListViewModel
 import com.example.todoapp.viewmodel.ProjectViewModel
+import com.example.todoapp.viewmodel.TaskViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -38,12 +39,13 @@ class MainActivity : ComponentActivity() {
 fun MainScreen() {
     val projectViewModel: ProjectViewModel = hiltViewModel()
     val listViewModel: ListViewModel = hiltViewModel()
+    val taskViewModel: TaskViewModel = hiltViewModel()
     val navController = rememberNavController()
     Box(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        HomeScreen(projectViewModel)
+        HomeScreen(projectViewModel, taskViewModel)
     }
 }
 
