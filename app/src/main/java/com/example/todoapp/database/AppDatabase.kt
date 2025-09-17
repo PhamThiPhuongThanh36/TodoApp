@@ -9,7 +9,6 @@ import com.example.todoapp.database.dao.ProjectDao
 import com.example.todoapp.database.dao.TaskDao
 import com.example.todoapp.database.entities.ListEntity
 import com.example.todoapp.database.entities.ProjectEntity
-import com.example.todoapp.database.entities.SubTaskEntity
 import com.example.todoapp.database.entities.TagEntity
 import com.example.todoapp.database.entities.TaskEntity
 import com.example.todoapp.database.entities.TaskTagEntity
@@ -19,7 +18,6 @@ import com.example.todoapp.database.entities.TaskTagEntity
         ProjectEntity::class,
         ListEntity::class,
         TaskEntity::class,
-        SubTaskEntity::class,
         TagEntity::class,
         TaskTagEntity::class
     ],

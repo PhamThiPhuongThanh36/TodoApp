@@ -23,6 +23,6 @@ interface ProjectDao{
     suspend fun deleteProject(projectId: Int)
 
     @Query("SELECT * FROM projects WHERE projectId = :projectId")
-    fun getProjectById(projectId: Int): Flow<ProjectEntity>
+    fun getProjectById(projectId: Int): Flow<ProjectEntity?>
 
 }

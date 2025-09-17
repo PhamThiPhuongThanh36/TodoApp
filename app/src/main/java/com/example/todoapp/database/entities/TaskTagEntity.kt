@@ -1,12 +1,26 @@
 package com.example.todoapp.database.entities
 
+import androidx.room.Embedded
 import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room.Junction
+import androidx.room.Relation
 
-@Entity(tableName = "tasktags")
+@Entity(
+    tableName = "tasks_tags",
+    primaryKeys = ["taskId", "tagId"]
+)
 data class TaskTagEntity(
-    @PrimaryKey(autoGenerate = true)
-    val ttId: Int,
     val taskId: Int,
     val tagId: Int
+)
+
+data class TaskWithTags(
+    @Embedded val task: TaskEntity,
+
+    @Relation(
+        parentColumn = "taskId",
+        entityColumn = "tagId",
+        associateBy = Junction(TaskTagEntity::class)
+    )
+    val tags: List<TagEntity>
 )
