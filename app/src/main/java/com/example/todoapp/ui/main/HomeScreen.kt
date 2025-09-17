@@ -2,21 +2,17 @@ package com.example.todoapp.ui.main
 
 import android.util.Log
 import com.example.todoapp.R
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,43 +20,55 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.datastore.core.DataStore
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.createGraph
-import androidx.navigation.navArgument
 import com.example.todoapp.database.entities.ProjectEntity
+import com.example.todoapp.database.entities.TagEntity
 import com.example.todoapp.helper.DataStoreHelper
 import com.example.todoapp.ui.common.DialogCustom
 import com.example.todoapp.ui.common.OperationCustom
+import com.example.todoapp.ui.common.TagDialogCustom
 import com.example.todoapp.ui.drawer.DrawerScreen
+import com.example.todoapp.ui.task.TaskViewByTagScreen
 import com.example.todoapp.viewmodel.ListViewModel
 import com.example.todoapp.viewmodel.ProjectViewModel
+import com.example.todoapp.viewmodel.TaskViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun HomeScreen(projectViewModel: ProjectViewModel) {
+fun HomeScreen(projectViewModel: ProjectViewModel, taskViewModel: TaskViewModel) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
     var newProjectName by remember { mutableStateOf("") }
+    var newTagName by remember { mutableStateOf("") }
     var isShowAddProjectDialog by remember { mutableStateOf(false) }
+    var isShowAddTagDialog by remember { mutableStateOf(false) }
     val listProject = projectViewModel.projects.collectAsState(initial = emptyList())
     val context = LocalContext.current
     var isShowEditProjectDialog by remember { mutableStateOf(false) }
     var projectEdit by remember { mutableStateOf<ProjectEntity?>(null) }
     val navController = rememberNavController()
+
+    var currentProjectId by remember { mutableStateOf(-1) }
+    LaunchedEffect(currentProjectId) {
+        currentProjectId = DataStoreHelper.getCurrentProjectId(context)
+        if (currentProjectId == -1 && listProject.value.isNotEmpty()) {
+            currentProjectId = listProject.value.first().projectId!!
+            DataStoreHelper.saveCurrentProjectId(context, currentProjectId)
+        }
+    }
 
     Log.d("HomeScreen", "ListProject: ${listProject.value}")
     ModalNavigationDrawer(
@@ -82,7 +90,7 @@ fun HomeScreen(projectViewModel: ProjectViewModel) {
                                     onClick = {
                                         coroutineScope.launch {
                                             DataStoreHelper.saveCurrentProjectId(context, project.projectId!!)
-                                            navController.navigate("projectView/${project.projectId}")
+                                            navController.navigate("projectView")
                                             drawerState.close()
                                         }
                                     }
@@ -97,7 +105,7 @@ fun HomeScreen(projectViewModel: ProjectViewModel) {
                 },
                 onProjectViewByTag = {
                     coroutineScope.launch {
-                        navController.navigate("projectViewByTag")
+                        navController.navigate("taskViewByTag")
                         drawerState.close()
                     }
                 },
@@ -114,9 +122,7 @@ fun HomeScreen(projectViewModel: ProjectViewModel) {
                     }
                 },
                 onTag = {
-                    coroutineScope.launch {
-                        drawerState.close()
-                    }
+                    isShowAddTagDialog = true
                 },
                 onMoveProject = {
                     coroutineScope.launch {
@@ -136,7 +142,7 @@ fun HomeScreen(projectViewModel: ProjectViewModel) {
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            NavHost(navController = navController, graph = NavGraph(navController))
+            NavHost(navController = navController, graph = NavGraph(projectViewModel, navController, currentProjectId))
         }
         if (isShowAddProjectDialog) {
             DialogCustom(
@@ -194,27 +200,42 @@ fun HomeScreen(projectViewModel: ProjectViewModel) {
                 }
             )
         }
+        if (isShowAddTagDialog) {
+            TagDialogCustom(
+                newTag = newTagName,
+                onNewTagChange = { newTagName = it },
+                onDismiss = { isShowAddTagDialog = false },
+                onConfirm = { color ->
+                    taskViewModel.insertTag(
+                        TagEntity(
+                            tagName = newTagName,
+                            tagColor = color.toArgb().toLong()
+                        )
+                    )
+                    newTagName = ""
+                    isShowAddTagDialog = false
+                }
+            )
+        }
     }
 }
 
 @Composable
-fun NavGraph(navController: NavController): NavGraph {
+fun NavGraph(projectViewModel: ProjectViewModel, navController: NavController, currentProjectId: Int): NavGraph {
     val projectViewModel: ProjectViewModel = hiltViewModel()
     val listViewModel: ListViewModel = hiltViewModel()
+    val taskViewModel: TaskViewModel = hiltViewModel()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    return navController.createGraph("pomodoroMode") {
-        composable(
-            route = "projectView/{projectId}",
-            arguments = listOf(
-                navArgument("projectId") { type = NavType.IntType}
-            )
-        ) { backStackEntry ->
-            val projectId = backStackEntry.arguments?.getInt("projectId") ?: -1
-            ProjectViewScreen(projectViewModel, listViewModel, navController, projectId)
+    return navController.createGraph(if (currentProjectId != -1) "projectView" else "emptyProject") {
+        composable("projectView") {
+            ProjectViewScreen(projectViewModel, listViewModel, taskViewModel, navController)
         }
-        composable("projectViewByTag") {
-            ProjectViewByTagScreen()
+        composable("emptyProject") {
+            EmptyProject()
+        }
+        composable("taskViewByTag") {
+            TaskViewByTagScreen(taskViewModel)
         }
         composable("projectViewByDueDate") {
             ProjectDueDateScreen()
@@ -228,5 +249,5 @@ fun NavGraph(navController: NavController): NavGraph {
 @Preview
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(projectViewModel = hiltViewModel())
+    HomeScreen(projectViewModel = hiltViewModel(), hiltViewModel())
 }
