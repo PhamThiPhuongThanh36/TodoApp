@@ -123,7 +123,7 @@ fun DrawerScreen(
         )
         OperationCustom(
             R.drawable.ic_full_tag,
-            text = "Nhãn",
+            text = "Thêm nhãn mới",
             modifier = Modifier
                 .padding(top = 8.dp)
                 .clickable { onTag() }
