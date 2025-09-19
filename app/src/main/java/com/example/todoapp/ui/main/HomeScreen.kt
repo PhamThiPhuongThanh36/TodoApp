@@ -37,6 +37,7 @@ import androidx.navigation.createGraph
 import com.example.todoapp.database.entities.ProjectEntity
 import com.example.todoapp.database.entities.TagEntity
 import com.example.todoapp.helper.DataStoreHelper
+import com.example.todoapp.ui.alarm.CountdownTimerScreen
 import com.example.todoapp.ui.common.DialogCustom
 import com.example.todoapp.ui.common.OperationCustom
 import com.example.todoapp.ui.common.TagDialogCustom
@@ -238,10 +239,10 @@ fun NavGraph(projectViewModel: ProjectViewModel, navController: NavController, c
             TaskViewByTagScreen(taskViewModel)
         }
         composable("projectViewByDueDate") {
-            ProjectDueDateScreen()
+            AlarmScreen(context)
         }
         composable("pomodoroMode") {
-            CountDownScreen()
+            CountdownTimerScreen()
         }
     }
 }
