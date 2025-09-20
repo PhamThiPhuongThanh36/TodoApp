@@ -39,16 +39,17 @@ import android.content.pm.PackageManager
 import android.util.Log
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.core.app.ActivityCompat
+import androidx.navigation.NavBackStackEntry
 
 @Suppress("DefaultLocale")
 @Composable
-fun CountdownTimerScreen(activity: ComponentActivity? = null) {
+fun CountdownTimerScreen(activity: ComponentActivity? = null, navBackStackEntry: NavBackStackEntry? = null) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("alarm_prefs", Context.MODE_PRIVATE)
     var totalTime by remember { mutableLongStateOf(sharedPreferences.getLong("totalTime", 1 * 60 * 1000L)) }
     var timeLeft by remember { mutableLongStateOf(totalTime) }
     var isRunning by remember { mutableStateOf(sharedPreferences.getBoolean("isRunning", false)) }
-    var isRinging by remember { mutableStateOf(false) }
+    var isRinging by remember { mutableStateOf(sharedPreferences.getBoolean("isRinging", false)) }
     var triggerTime by remember { mutableLongStateOf(sharedPreferences.getLong("triggerTime", 0L)) }
 
     // Yêu cầu quyền POST_NOTIFICATIONS trên Android 13+
@@ -60,12 +61,20 @@ fun CountdownTimerScreen(activity: ComponentActivity? = null) {
         }
     }
 
-    // Kiểm tra intent extra từ notification
-    LaunchedEffect(Unit) {
-        activity?.intent?.getBooleanExtra("isRinging", false)?.let { ringing ->
-            if (ringing) {
+    // Kiểm tra isRinging từ NavArgs hoặc Intent
+    LaunchedEffect(navBackStackEntry) {
+        val ringingFromArgs = navBackStackEntry?.arguments?.getBoolean("isRinging") ?: false
+        Log.d("CountdownTimerScreen", "isRinging from NavArgs: $ringingFromArgs")
+        if (ringingFromArgs) {
+            isRinging = true
+            sharedPreferences.edit().putBoolean("isRinging", true).apply()
+        }
+        // Fallback: Kiểm tra Intent
+        activity?.intent?.getBooleanExtra("isRinging", false)?.let { ringingFromIntent ->
+            if (ringingFromIntent && !isRinging) {
                 isRinging = true
                 sharedPreferences.edit().putBoolean("isRinging", true).apply()
+                Log.d("CountdownTimerScreen", "isRinging from Intent: $ringingFromIntent")
             }
         }
     }
@@ -81,25 +90,29 @@ fun CountdownTimerScreen(activity: ComponentActivity? = null) {
     }
 
     // Cập nhật giao diện đếm ngược
-    LaunchedEffect(isRunning, triggerTime) {
-        if (isRunning && triggerTime > 0) {
-            while (System.currentTimeMillis() < triggerTime && isRunning) {
-                timeLeft = triggerTime - System.currentTimeMillis()
+    // Cập nhật giao diện đếm ngược
+    LaunchedEffect(isRunning) {
+        if (isRunning) {
+            while (timeLeft > 0 && isRunning) {
                 delay(1000L)
+                timeLeft -= 1000L
             }
-            if (System.currentTimeMillis() >= triggerTime && isRunning) {
+            if (timeLeft <= 0 && isRunning) {
                 isRunning = false
                 isRinging = true
                 sharedPreferences.edit()
                     .putBoolean("isRunning", false)
                     .putLong("triggerTime", 0L)
+                    .putBoolean("isRinging", true)
                     .apply()
+                Log.d("CountdownTimerScreen", "Timer finished, isRinging set to true")
             }
         }
     }
 
+
     val progress = remember(timeLeft, totalTime) {
-        if (totalTime > 0) timeLeft / totalTime.toFloat() else 0f
+        if (totalTime > 0) timeLeft.toFloat() / totalTime else 0f
     }
 
     val formattedTime = remember(timeLeft) {
