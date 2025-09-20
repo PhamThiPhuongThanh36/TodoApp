@@ -63,15 +63,16 @@ class AlarmReceiver : BroadcastReceiver() {
                 val alarmSound: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
                     ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
-                // Tạo PendingIntent để mở MainActivity khi nhấn thông báo
-                val contentIntent = Intent(context, MainActivity::class.java).apply {
-                    putExtra("isRinging", true) // Truyền trạng thái để hiển thị nút "Tắt chuông"
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                }
+                val intent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("com.example.todoapp://countdown?isRinging=true"),
+                    context,
+                    MainActivity::class.java
+                )
                 val pendingIntent = PendingIntent.getActivity(
                     context,
                     0,
-                    contentIntent,
+                    intent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
 
