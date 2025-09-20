@@ -1,6 +1,7 @@
 package com.example.todoapp.ui.main
 
 import android.util.Log
+import androidx.activity.ComponentActivity
 import com.example.todoapp.R
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -19,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -30,10 +32,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.createGraph
+import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.example.todoapp.database.entities.ProjectEntity
 import com.example.todoapp.database.entities.TagEntity
 import com.example.todoapp.helper.DataStoreHelper
@@ -49,35 +54,54 @@ import com.example.todoapp.viewmodel.TaskViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun HomeScreen(projectViewModel: ProjectViewModel, taskViewModel: TaskViewModel) {
+fun HomeScreen(
+    projectViewModel: ProjectViewModel,
+    taskViewModel: TaskViewModel,
+    activity: ComponentActivity
+) {
+
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val coroutineScope = rememberCoroutineScope()
+
     var newProjectName by remember { mutableStateOf("") }
     var newTagName by remember { mutableStateOf("") }
     var isShowAddProjectDialog by remember { mutableStateOf(false) }
     var isShowAddTagDialog by remember { mutableStateOf(false) }
-    val listProject = projectViewModel.projects.collectAsState(initial = emptyList())
-    val context = LocalContext.current
     var isShowEditProjectDialog by remember { mutableStateOf(false) }
     var projectEdit by remember { mutableStateOf<ProjectEntity?>(null) }
+
+    val listProject by projectViewModel.projects.collectAsState(initial = emptyList())
+    val context = LocalContext.current
     val navController = rememberNavController()
 
+    // id project hiện tại
     var currentProjectId by remember { mutableStateOf(-1) }
-    LaunchedEffect(currentProjectId) {
-        currentProjectId = DataStoreHelper.getCurrentProjectId(context)
-        if (currentProjectId == -1 && listProject.value.isNotEmpty()) {
-            currentProjectId = listProject.value.first().projectId!!
-            DataStoreHelper.saveCurrentProjectId(context, currentProjectId)
+    var isLoading by remember { mutableStateOf(true) }
+
+    // Đồng bộ currentProjectId với DataStore và listProject
+    LaunchedEffect(Unit) {
+        val savedId = DataStoreHelper.getCurrentProjectId(context)
+
+        currentProjectId = when {
+            savedId != -1 && listProject.any { it.projectId == savedId } -> savedId
+            listProject.isNotEmpty() -> {
+                val firstId = listProject.first().projectId ?: -1
+                if (firstId != -1) {
+                    DataStoreHelper.saveCurrentProjectId(context, firstId)
+                }
+                firstId
+            }
+            else -> -1
         }
+        isLoading = false
     }
 
-    Log.d("HomeScreen", "ListProject: ${listProject.value}")
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             DrawerScreen(
                 projectSection = {
-                    listProject.value.forEach { project ->
+                    listProject.forEach { project ->
                         OperationCustom(
                             icon = R.drawable.ic_list,
                             text = project.projectName,
@@ -90,8 +114,15 @@ fun HomeScreen(projectViewModel: ProjectViewModel, taskViewModel: TaskViewModel)
                                     },
                                     onClick = {
                                         coroutineScope.launch {
-                                            DataStoreHelper.saveCurrentProjectId(context, project.projectId!!)
-                                            navController.navigate("projectView")
+                                            project.projectId?.let {
+                                                DataStoreHelper.saveCurrentProjectId(context, it)
+                                                currentProjectId = it
+                                            }
+                                            navController.navigate("projectView") {
+                                                popUpTo(navController.graph.startDestinationId) {
+                                                    inclusive = true
+                                                }
+                                            }
                                             drawerState.close()
                                         }
                                     }
@@ -99,11 +130,7 @@ fun HomeScreen(projectViewModel: ProjectViewModel, taskViewModel: TaskViewModel)
                         )
                     }
                 },
-                onAddNewProject = {
-                    coroutineScope.launch {
-                        isShowAddProjectDialog = true
-                    }
-                },
+                onAddNewProject = { isShowAddProjectDialog = true },
                 onProjectViewByTag = {
                     coroutineScope.launch {
                         navController.navigate("taskViewByTag")
@@ -118,65 +145,57 @@ fun HomeScreen(projectViewModel: ProjectViewModel, taskViewModel: TaskViewModel)
                 },
                 onPomodoroMode = {
                     coroutineScope.launch {
-                        navController.navigate("pomodoroMode")
+                        navController.navigate("countdown")
                         drawerState.close()
                     }
                 },
-                onTag = {
-                    isShowAddTagDialog = true
-                },
+                onTag = { isShowAddTagDialog = true },
                 onMoveProject = {
-                    coroutineScope.launch {
-                        drawerState.close()
-                    }
+                    coroutineScope.launch { drawerState.close() }
                 },
                 onDeletedProjectView = {
-                    coroutineScope.launch {
-                        drawerState.close()
-                    }
+                    coroutineScope.launch { drawerState.close() }
                 }
             )
         },
         gesturesEnabled = true
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            NavHost(navController = navController, graph = NavGraph(projectViewModel, navController, currentProjectId))
+        Box(Modifier.fillMaxSize()) {
+            if (isLoading) {
+                Text("Loading...", modifier = Modifier.align(Alignment.Center))
+            } else {
+                NavHost(
+                    navController = navController,
+                    graph = NavGraph(navController, currentProjectId, activity)
+                )
+            }
         }
+
+        // Dialog thêm project
         if (isShowAddProjectDialog) {
             DialogCustom(
                 title = "Thêm mới danh sách",
                 label = "Tên danh sách",
                 value = newProjectName,
-                onValueChange = {
-                    newProjectName = it
-                },
+                onValueChange = { newProjectName = it },
                 onDelete = {},
-                onDismiss = {
-                    isShowAddProjectDialog = false
-                },
+                onDismiss = { isShowAddProjectDialog = false },
                 onConfirm = {
-                    projectViewModel.insertProject(
-                        ProjectEntity(
-                            projectName = newProjectName
-                        )
-                    )
+                    projectViewModel.insertProject(ProjectEntity(projectName = newProjectName))
                     newProjectName = ""
                     isShowAddProjectDialog = false
                 }
             )
         }
-        if (isShowEditProjectDialog) {
+
+        // Dialog sửa project
+        if (isShowEditProjectDialog && projectEdit != null) {
             DialogCustom(
                 title = "Chỉnh sửa danh sách",
                 label = "Tên danh sách",
                 value = projectEdit?.projectName ?: "",
                 onValueChange = { newValue ->
-                    projectEdit?.let {
-                        projectEdit = it.copy(projectName = newValue)
-                    }
+                    projectEdit = projectEdit?.copy(projectName = newValue)
                 },
                 onDelete = {
                     Text(
@@ -192,15 +211,15 @@ fun HomeScreen(projectViewModel: ProjectViewModel, taskViewModel: TaskViewModel)
                             }
                     )
                 },
-                onDismiss = {
-                    isShowEditProjectDialog = false
-                },
+                onDismiss = { isShowEditProjectDialog = false },
                 onConfirm = {
-                    projectViewModel.updateProject(projectEdit!!)
+                    projectEdit?.let { projectViewModel.updateProject(it) }
                     isShowEditProjectDialog = false
                 }
             )
         }
+
+        // Dialog thêm tag
         if (isShowAddTagDialog) {
             TagDialogCustom(
                 newTag = newTagName,
@@ -208,10 +227,7 @@ fun HomeScreen(projectViewModel: ProjectViewModel, taskViewModel: TaskViewModel)
                 onDismiss = { isShowAddTagDialog = false },
                 onConfirm = { color ->
                     taskViewModel.insertTag(
-                        TagEntity(
-                            tagName = newTagName,
-                            tagColor = color.toArgb().toLong()
-                        )
+                        TagEntity(tagName = newTagName, tagColor = color.toArgb().toLong())
                     )
                     newTagName = ""
                     isShowAddTagDialog = false
@@ -222,33 +238,40 @@ fun HomeScreen(projectViewModel: ProjectViewModel, taskViewModel: TaskViewModel)
 }
 
 @Composable
-fun NavGraph(projectViewModel: ProjectViewModel, navController: NavController, currentProjectId: Int): NavGraph {
+fun NavGraph(
+    navController: NavController,
+    currentProjectId: Int,
+    activity: ComponentActivity
+): NavGraph {
     val projectViewModel: ProjectViewModel = hiltViewModel()
     val listViewModel: ListViewModel = hiltViewModel()
     val taskViewModel: TaskViewModel = hiltViewModel()
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    return navController.createGraph(if (currentProjectId != -1) "projectView" else "emptyProject") {
+
+    val startDest = if (currentProjectId != -1) "projectView" else "emptyProject"
+
+    return navController.createGraph(startDestination = startDest) {
         composable("projectView") {
             ProjectViewScreen(projectViewModel, listViewModel, taskViewModel, navController)
         }
-        composable("emptyProject") {
-            EmptyProject()
-        }
-        composable("taskViewByTag") {
-            TaskViewByTagScreen(taskViewModel)
-        }
-        composable("projectViewByDueDate") {
-            AlarmScreen(context)
-        }
-        composable("pomodoroMode") {
-            CountdownTimerScreen()
+        composable("emptyProject") { EmptyProject() }
+        composable("taskViewByTag") { TaskViewByTagScreen(taskViewModel) }
+        composable("projectViewByDueDate") { AlarmScreen(context) }
+        composable(
+            route = "countdown?isRinging={isRinging}",
+            arguments = listOf(
+                navArgument("isRinging") {
+                    type = NavType.BoolType
+                    defaultValue = false
+                }
+            ),
+            deepLinks = listOf(
+                navDeepLink {
+                    uriPattern = "com.example.todoapp://countdown?isRinging={isRinging}"
+                }
+            )
+        ) { backStackEntry ->
+            CountdownTimerScreen(activity = activity, navBackStackEntry = backStackEntry)
         }
     }
-}
-
-@Preview
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen(projectViewModel = hiltViewModel(), hiltViewModel())
 }
