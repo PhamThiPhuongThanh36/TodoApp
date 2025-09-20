@@ -1,5 +1,6 @@
 package com.example.todoapp
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -29,23 +30,20 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ToDoAppTheme {
-                MainScreen()
+                val projectViewModel: ProjectViewModel = hiltViewModel()
+                val listViewModel: ListViewModel = hiltViewModel()
+                val taskViewModel: TaskViewModel = hiltViewModel()
+                val navController = rememberNavController()
+                HomeScreen(projectViewModel, taskViewModel, this)
             }
         }
     }
-}
 
-@Composable
-fun MainScreen() {
-    val projectViewModel: ProjectViewModel = hiltViewModel()
-    val listViewModel: ListViewModel = hiltViewModel()
-    val taskViewModel: TaskViewModel = hiltViewModel()
-    val navController = rememberNavController()
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        HomeScreen(projectViewModel, taskViewModel)
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        intent.let {
+            setIntent(it) // Cập nhật Intent để LaunchedEffect trong CountdownTimerScreen xử lý
+        }
     }
 }
 
