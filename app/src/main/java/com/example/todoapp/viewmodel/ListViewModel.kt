@@ -13,8 +13,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ListViewModel @Inject constructor(private val repository: ListRepository) : ViewModel() {
-    private val _lists = MutableStateFlow<List<ListEntity>>(emptyList())
-    val lists: StateFlow<List<ListEntity>> = _lists
 
     fun getListsByProjectId(projectId: Int): Flow<List<ListEntity>> {
         return repository.getListsByProjectId(projectId)
