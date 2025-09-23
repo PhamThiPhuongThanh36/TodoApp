@@ -4,9 +4,6 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.media.Ringtone
-import android.media.RingtoneManager
-import android.net.Uri
 import android.os.Build
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -28,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.todoapp.R
 import kotlinx.coroutines.delay
-import android.content.SharedPreferences
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -37,20 +33,37 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.util.Log
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavBackStackEntry
+import com.example.todoapp.helper.DataStoreHelper
+import kotlinx.coroutines.launch
 
 @Suppress("DefaultLocale")
 @Composable
-fun CountdownTimerScreen(activity: ComponentActivity? = null, navBackStackEntry: NavBackStackEntry? = null) {
+fun CountdownTimerScreen(
+    activity: ComponentActivity? = null,
+    navBackStackEntry: NavBackStackEntry? = null,
+) {
     val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("alarm_prefs", Context.MODE_PRIVATE)
-    var totalTime by remember { mutableLongStateOf(sharedPreferences.getLong("totalTime", 1 * 60 * 1000L)) }
+    val coroutineScope = rememberCoroutineScope()
+    var totalTime by remember { mutableLongStateOf(0L) }
+    var isRunning by remember { mutableStateOf(false) }
+    var isRinging by remember { mutableStateOf(false) }
+    var triggerTime by remember { mutableLongStateOf(0L) }
     var timeLeft by remember { mutableLongStateOf(totalTime) }
-    var isRunning by remember { mutableStateOf(sharedPreferences.getBoolean("isRunning", false)) }
-    var isRinging by remember { mutableStateOf(sharedPreferences.getBoolean("isRinging", false)) }
-    var triggerTime by remember { mutableLongStateOf(sharedPreferences.getLong("triggerTime", 0L)) }
+    var hourInput by remember { mutableStateOf("0") }
+    var minuteInput by remember { mutableStateOf("0") }
+
+    LaunchedEffect(isRunning, isRinging, triggerTime) {
+        DataStoreHelper.saveIsRinging(context, isRinging)
+        DataStoreHelper.saveIsRunning(context, isRunning)
+        isRunning = DataStoreHelper.getIsRunning(context)
+        isRinging = DataStoreHelper.getIsRinging(context)
+        triggerTime = DataStoreHelper.getTriggerTime(context)
+    }
 
     // Yêu cầu quyền POST_NOTIFICATIONS trên Android 13+
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -67,13 +80,11 @@ fun CountdownTimerScreen(activity: ComponentActivity? = null, navBackStackEntry:
         Log.d("CountdownTimerScreen", "isRinging from NavArgs: $ringingFromArgs")
         if (ringingFromArgs) {
             isRinging = true
-            sharedPreferences.edit().putBoolean("isRinging", true).apply()
         }
         // Fallback: Kiểm tra Intent
         activity?.intent?.getBooleanExtra("isRinging", false)?.let { ringingFromIntent ->
             if (ringingFromIntent && !isRinging) {
                 isRinging = true
-                sharedPreferences.edit().putBoolean("isRinging", true).apply()
                 Log.d("CountdownTimerScreen", "isRinging from Intent: $ringingFromIntent")
             }
         }
@@ -81,15 +92,22 @@ fun CountdownTimerScreen(activity: ComponentActivity? = null, navBackStackEntry:
 
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
                 activity?.let {
-                    ActivityCompat.requestPermissions(it, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 100)
+                    ActivityCompat.requestPermissions(
+                        it,
+                        arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                        100
+                    )
                 } ?: permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
     }
 
-    // Cập nhật giao diện đếm ngược
     // Cập nhật giao diện đếm ngược
     LaunchedEffect(isRunning) {
         if (isRunning) {
@@ -100,12 +118,6 @@ fun CountdownTimerScreen(activity: ComponentActivity? = null, navBackStackEntry:
             if (timeLeft <= 0 && isRunning) {
                 isRunning = false
                 isRinging = true
-                sharedPreferences.edit()
-                    .putBoolean("isRunning", false)
-                    .putLong("triggerTime", 0L)
-                    .putBoolean("isRinging", true)
-                    .apply()
-                Log.d("CountdownTimerScreen", "Timer finished, isRinging set to true")
             }
         }
     }
@@ -135,11 +147,11 @@ fun CountdownTimerScreen(activity: ComponentActivity? = null, navBackStackEntry:
         )
 
         triggerTime = System.currentTimeMillis() + timeLeft
-        sharedPreferences.edit()
-            .putLong("totalTime", totalTime)
-            .putLong("triggerTime", triggerTime)
-            .putBoolean("isRunning", true)
-            .apply()
+        isRunning = true
+        isRinging = false
+        coroutineScope.launch {
+            DataStoreHelper.saveTriggerTime(context, triggerTime)
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             alarmManager.setExactAndAllowWhileIdle(
@@ -167,10 +179,11 @@ fun CountdownTimerScreen(activity: ComponentActivity? = null, navBackStackEntry:
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         alarmManager.cancel(pendingIntent)
-        sharedPreferences.edit()
-            .putBoolean("isRunning", false)
-            .putLong("triggerTime", 0L)
-            .apply()
+        isRunning = false
+        isRinging = false
+        coroutineScope.launch {
+            DataStoreHelper.saveTriggerTime(context, 0L)
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -191,8 +204,9 @@ fun CountdownTimerScreen(activity: ComponentActivity? = null, navBackStackEntry:
             if (!isRunning && !isRinging) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
-                        value = (totalTime / 60000).toString(),
+                        value = hourInput,
                         onValueChange = {
+                            hourInput = it
                             val minutes = it.toLongOrNull() ?: 0L
                             totalTime = minutes * 60 * 1000
                             timeLeft = totalTime
@@ -214,10 +228,11 @@ fun CountdownTimerScreen(activity: ComponentActivity? = null, navBackStackEntry:
                     )
                     Spacer(Modifier.width(16.dp))
                     OutlinedTextField(
-                        value = ((totalTime / 1000) % 60).toString(),
+                        value = minuteInput,
                         onValueChange = {
+                            minuteInput = it
                             val seconds = it.toLongOrNull() ?: 0L
-                            totalTime = (totalTime / 60000) * 60 * 1000 + seconds * 1000
+                            totalTime += seconds * 1000
                             timeLeft = totalTime
                         },
                         label = { Text("Giây", color = Color.White) },
@@ -266,42 +281,71 @@ fun CountdownTimerScreen(activity: ComponentActivity? = null, navBackStackEntry:
 
             Row {
                 if (isRinging) {
-                    Button(onClick = {
-                        val stopIntent = Intent(context, AlarmReceiver::class.java).apply {
-                            action = AlarmReceiver.ACTION_STOP_ALARM
+                    Button(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFFFFFFF),
+                            contentColor = Color(0xFF000000)
+                        ),
+                        onClick = {
+                            val stopIntent = Intent(context, AlarmReceiver::class.java).apply {
+                                action = AlarmReceiver.ACTION_STOP_ALARM
+                            }
+                            context.sendBroadcast(stopIntent)
+                            isRinging = false
+                            timeLeft = totalTime
+                            cancelAlarm()
+                            coroutineScope.launch {
+                                DataStoreHelper.saveIsRinging(context, false)
+                                DataStoreHelper.saveTriggerTime(context, 0L)
+                            }
+                            Log.d("CountdownTimerScreen", "Stop alarm button clicked")
                         }
-                        context.sendBroadcast(stopIntent)
-                        isRinging = false
-                        timeLeft = totalTime
-                        cancelAlarm()
-                        sharedPreferences.edit().putBoolean("isRinging", false).apply() // Lưu trạng thái
-                        Log.d("CountdownTimerScreen", "Stop alarm button clicked")
-                    }) {
+                    ) {
                         Text("Tắt chuông")
                     }
                 } else {
-                    Button(onClick = {
-                        if (timeLeft > 0) {
-                            isRunning = !isRunning
-                            if (isRunning) {
-                                setAlarm()
-                            } else {
-                                cancelAlarm()
+                    Button(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFFFFFFF),
+                            contentColor = Color(0xFF000000)
+                        ),
+                        onClick = {
+                            if (timeLeft > 0) {
+                                isRunning = !isRunning
+                                if (isRunning) {
+                                    setAlarm()
+                                } else {
+                                    cancelAlarm()
+                                }
                             }
                         }
-                    }) {
+                    ) {
                         Text(if (isRunning) "Pause" else "Start")
                     }
                     Spacer(Modifier.width(16.dp))
-                    Button(onClick = {
-                        isRunning = false
-                        timeLeft = totalTime
-                        cancelAlarm()
-                    }) {
+                    Button(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFFFFFFF),
+                            contentColor = Color(0xFF000000)
+                        ),
+                        onClick = {
+                            isRunning = false
+                            timeLeft = totalTime
+                            cancelAlarm()
+                        }) {
                         Text("Reset")
                     }
                 }
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun CountDownPreview() {
+    CountdownTimerScreen()
 }

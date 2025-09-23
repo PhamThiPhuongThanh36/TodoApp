@@ -11,7 +11,6 @@ import android.media.AudioAttributes
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
-import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
@@ -42,23 +41,21 @@ class AlarmReceiver : BroadcastReceiver() {
                 val channelId = "alarm_channel"
 
                 // Kênh thông báo (Android 8+)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    val channel = NotificationChannel(
-                        channelId,
-                        "Alarm Channel",
-                        NotificationManager.IMPORTANCE_HIGH
-                    ).apply {
-                        enableVibration(true)
-                        vibrationPattern = longArrayOf(0, 500, 1000, 500)
-                        setSound(
-                            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM),
-                            AudioAttributes.Builder()
-                                .setUsage(AudioAttributes.USAGE_ALARM)
-                                .build()
-                        )
-                    }
-                    notificationManager.createNotificationChannel(channel)
+                val channel = NotificationChannel(
+                    channelId,
+                    "Alarm Channel",
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    enableVibration(true)
+                    vibrationPattern = longArrayOf(0, 500, 1000, 500)
+                    setSound(
+                        RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM),
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_ALARM)
+                            .build()
+                    )
                 }
+                notificationManager.createNotificationChannel(channel)
 
                 val alarmSound: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
                     ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
