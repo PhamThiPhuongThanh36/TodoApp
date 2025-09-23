@@ -10,5 +10,7 @@ data class TaskEntity(
     val listId: Int? = null,
     val taskName: String,
     val status: Boolean = false,
-    val note: String? = null
+    val note: String? = null,
+    val createdAt: String? = null,
+    val dueDate: String? = null
 )
