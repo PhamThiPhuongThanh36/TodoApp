@@ -1,6 +1,5 @@
 package com.example.todoapp.di
 
-import android.app.Application
 import android.content.Context
 import androidx.room.Room
 import com.example.todoapp.database.AppDatabase
@@ -21,7 +20,9 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "todo_database"
-        ).build()
+        )
+            .fallbackToDestructiveMigration(false)
+            .build()
     }
 
     @Singleton
