@@ -32,7 +32,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 Log.d("AlarmReceiver", "Stopping ringtone")
                 ringtone?.stop()
                 ringtone = null
-                // Hủy notification
+
                 val notificationManager = NotificationManagerCompat.from(context)
                 notificationManager.cancel(1)
             }
@@ -40,7 +40,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 val notificationManager = NotificationManagerCompat.from(context)
                 val channelId = "alarm_channel"
 
-                // Kênh thông báo (Android 8+)
+
                 val channel = NotificationChannel(
                     channelId,
                     "Alarm Channel",
@@ -73,7 +73,7 @@ class AlarmReceiver : BroadcastReceiver() {
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
 
-                // Tạo thông báo
+
                 val notification = NotificationCompat.Builder(context, channelId)
                     .setContentTitle("⏰ Báo thức")
                     .setContentText("Hết giờ rồi!")
@@ -87,7 +87,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
                 notificationManager.notify(1, notification)
 
-                // Phát chuông
+
                 ringtone?.stop() // Dừng chuông cũ nếu có
                 ringtone = RingtoneManager.getRingtone(context, alarmSound)
                 ringtone?.play()
