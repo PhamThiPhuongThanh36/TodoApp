@@ -49,6 +49,7 @@ import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.FractionalThreshold
 import androidx.wear.compose.material.rememberSwipeableState
 import androidx.wear.compose.material.swipeable
+import com.example.todoapp.database.entities.DeletedTaskEntity
 import com.example.todoapp.database.entities.TagEntity
 import com.example.todoapp.database.entities.TaskEntity
 import com.example.todoapp.database.entities.TaskTagEntity
@@ -124,7 +125,20 @@ fun TaskScreen(taskViewModel: TaskViewModel, navController: NavController, listI
                 if (taskWithTag != null) {
                     TaskItem(
                         taskWithTags = taskWithTag,
-                        onDelete = { taskViewModel.deleteTask(it.taskId!!) },
+                        onDelete = {
+                            taskViewModel.insertDeletedTask(
+                                DeletedTaskEntity(
+                                    taskId = it.taskId,
+                                    listId = it.listId,
+                                    taskName = it.taskName,
+                                    status = it.status,
+                                    note = it.note,
+                                    createdAt = it.createdAt,
+                                    dueDate = it.dueDate
+                                )
+                            )
+                            taskViewModel.deleteTask(it.taskId!!)
+                        },
                         onEdit = {
                             editTaskId = taskWithTag.task.taskId ?: -1
                             isShowModalSheetAddTask = true
