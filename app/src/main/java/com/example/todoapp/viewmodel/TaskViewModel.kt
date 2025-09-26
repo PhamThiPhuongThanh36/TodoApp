@@ -2,11 +2,13 @@ package com.example.todoapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.todoapp.database.entities.DeletedTaskEntity
 import com.example.todoapp.database.entities.TagEntity
 import com.example.todoapp.database.entities.TaskEntity
 import com.example.todoapp.database.entities.TaskTagEntity
 import com.example.todoapp.database.entities.TaskWithTags
 import com.example.todoapp.helper.CommonHelper
+import com.example.todoapp.model.TaskWithListAndProject
 import com.example.todoapp.repository.TaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
@@ -122,5 +124,25 @@ class TaskViewModel @Inject constructor(
                 task.dueDate.isNullOrBlank()
             }
         }
+    }
+
+    fun insertDeletedTask(deletedTask: DeletedTaskEntity) {
+        viewModelScope.launch {
+            repository.insertDeletedTask(deletedTask)
+        }
+    }
+
+    fun restoreTask(taskId: Int) {
+        viewModelScope.launch {
+            repository.restoreTask(taskId)
+        }
+    }
+
+    fun getTasksWithListAndProject(): Flow<List<TaskWithListAndProject>> {
+        return repository.getTasksWithListAndProject()
+    }
+
+    fun getDeletedTaskById(taskId: Int): Flow<DeletedTaskEntity?> {
+        return repository.getDeletedTaskById(taskId)
     }
 }
