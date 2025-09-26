@@ -351,14 +351,71 @@ fun TagItem(value: String, color: Color, modifier: Modifier = Modifier) {
     )
 }
 
+@Composable
+fun ChoiceDialog(onDismiss: () -> Unit = {}, onDelete: () -> Unit = {}, onRestore: () -> Unit = {}) {
+    Dialog(
+        onDismissRequest = {}
+    ) {
+        Column(
+            modifier = Modifier
+                .background(Color(0xFFFFFFFF))
+        ) {
+            Row(
+                modifier = Modifier
+                    .background(Color(0xFFFF9800))
+                    .padding(start = 30.dp, end = 30.dp, top = 15.dp)
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = "Lựa chọn hành động",
+                    fontSize = 24.sp,
+                    color = Color(0xFFFFFFFF),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .padding(bottom = 20.dp)
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Icon(
+                    painter = painterResource(R.drawable.ic_cancel),
+                    contentDescription = "cancel",
+                    tint = Color(0xFFFFFFFF),
+                    modifier = Modifier
+                        .clickable { onDismiss() }
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .padding(start = 30.dp, end = 30.dp, bottom = 20.dp, top = 20.dp)
+            ) {
+                Text(
+                    text = "Xóa",
+                    color = Color(0xFFFF0000),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .clickable { onDelete() }
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = "Khôi phục",
+                    color = Color(0xFF3F51B5),
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .clickable { onRestore() }
+                )
+            }
+        }
+    }
+}
+
 @Preview
 @Composable
 fun DialogCustomPreview() {
 //    DialogCustom("Chỉnh sửa danh sách", "Tên danh sách", "", {}, {}, {}, {})
 //    TagDialogCustom("", {}, {}, {})
 //    SelectedTagDialog(listOf(), listOf(), {}, {})
-    TagItem(
-        "hehe",
-        Color(0xFFD78A8A)
-    )
+//    TagItem(
+//        "hehe",
+//        Color(0xFFD78A8A)
+//    )
+    ChoiceDialog()
 }
