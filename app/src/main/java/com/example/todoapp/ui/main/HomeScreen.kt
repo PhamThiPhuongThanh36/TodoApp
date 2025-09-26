@@ -43,6 +43,7 @@ import com.example.todoapp.database.entities.ProjectEntity
 import com.example.todoapp.database.entities.TagEntity
 import com.example.todoapp.helper.DataStoreHelper
 import com.example.todoapp.ui.alarm.CountdownTimerScreen
+import com.example.todoapp.ui.alarm.ProjectViewByDueDate
 import com.example.todoapp.ui.common.DialogCustom
 import com.example.todoapp.ui.common.OperationCustom
 import com.example.todoapp.ui.common.TagDialogCustom
@@ -74,11 +75,9 @@ fun HomeScreen(
     val context = LocalContext.current
     val navController = rememberNavController()
 
-    // id project hiện tại
     var currentProjectId by remember { mutableStateOf(-1) }
     var isLoading by remember { mutableStateOf(true) }
 
-    // Đồng bộ currentProjectId với DataStore và listProject
     LaunchedEffect(Unit) {
         val savedId = DataStoreHelper.getCurrentProjectId(context)
 
@@ -150,9 +149,6 @@ fun HomeScreen(
                     }
                 },
                 onTag = { isShowAddTagDialog = true },
-                onMoveProject = {
-                    coroutineScope.launch { drawerState.close() }
-                },
                 onDeletedProjectView = {
                     coroutineScope.launch { drawerState.close() }
                 }
@@ -171,7 +167,6 @@ fun HomeScreen(
             }
         }
 
-        // Dialog thêm project
         if (isShowAddProjectDialog) {
             DialogCustom(
                 title = "Thêm mới danh sách",
@@ -188,7 +183,6 @@ fun HomeScreen(
             )
         }
 
-        // Dialog sửa project
         if (isShowEditProjectDialog && projectEdit != null) {
             DialogCustom(
                 title = "Chỉnh sửa danh sách",
@@ -219,7 +213,6 @@ fun HomeScreen(
             )
         }
 
-        // Dialog thêm tag
         if (isShowAddTagDialog) {
             TagDialogCustom(
                 newTag = newTagName,
@@ -256,7 +249,7 @@ fun NavGraph(
         }
         composable("emptyProject") { EmptyProject() }
         composable("taskViewByTag") { TaskViewByTagScreen(taskViewModel) }
-        composable("projectViewByDueDate") { AlarmScreen(context) }
+        composable("projectViewByDueDate") { ProjectViewByDueDate(taskViewModel) }
         composable(
             route = "countdown?isRinging={isRinging}",
             arguments = listOf(

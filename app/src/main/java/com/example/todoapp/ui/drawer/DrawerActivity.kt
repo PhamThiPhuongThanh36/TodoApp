@@ -31,7 +31,6 @@ fun DrawerScreen(
     onProjectViewByDueDate: () -> Unit,
     onPomodoroMode: () -> Unit,
     onTag: () -> Unit,
-    onMoveProject: () -> Unit,
     onDeletedProjectView: () -> Unit
 ) {
     Column(
@@ -129,12 +128,6 @@ fun DrawerScreen(
                 .clickable { onTag() }
         )
         OperationCustom(
-            R.drawable.ic_move,
-            text = "Sắp xếp vị trí",
-            modifier = Modifier
-                .clickable { onMoveProject() }
-        )
-        OperationCustom(
             R.drawable.ic_trash,
             text = "Các mục đã xóa",
             modifier = Modifier
@@ -151,5 +144,5 @@ fun DrawerScreen(
 @Preview
 @Composable
 fun DrawerScreenPreview() {
-    DrawerScreen({}, {}, {}, {}, {}, {}, {}, {})
+    DrawerScreen({}, {},  {}, {}, {}, {}, {})
 }
