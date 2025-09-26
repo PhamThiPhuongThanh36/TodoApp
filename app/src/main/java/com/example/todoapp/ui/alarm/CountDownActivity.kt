@@ -65,23 +65,18 @@ fun CountdownTimerScreen(
         triggerTime = DataStoreHelper.getTriggerTime(context)
     }
 
-    // Yêu cầu quyền POST_NOTIFICATIONS trên Android 13+
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (!isGranted) {
-            // Xử lý trường hợp người dùng từ chối quyền
-        }
-    }
+    ) { }
 
-    // Kiểm tra isRinging từ NavArgs hoặc Intent
     LaunchedEffect(navBackStackEntry) {
         val ringingFromArgs = navBackStackEntry?.arguments?.getBoolean("isRinging") ?: false
         Log.d("CountdownTimerScreen", "isRinging from NavArgs: $ringingFromArgs")
         if (ringingFromArgs) {
             isRinging = true
         }
-        // Fallback: Kiểm tra Intent
+
         activity?.intent?.getBooleanExtra("isRinging", false)?.let { ringingFromIntent ->
             if (ringingFromIntent && !isRinging) {
                 isRinging = true
@@ -108,7 +103,6 @@ fun CountdownTimerScreen(
         }
     }
 
-    // Cập nhật giao diện đếm ngược
     LaunchedEffect(isRunning) {
         if (isRunning) {
             while (timeLeft > 0 && isRunning) {
@@ -134,7 +128,6 @@ fun CountdownTimerScreen(
         String.format("%02d:%02d:%02d", hours, minutes, seconds)
     }
 
-    // Hàm setAlarm
     @SuppressLint("ScheduleExactAlarm")
     fun setAlarm() {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -168,7 +161,6 @@ fun CountdownTimerScreen(
         }
     }
 
-    // Hàm cancelAlarm
     fun cancelAlarm() {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, AlarmReceiver::class.java)
@@ -254,7 +246,6 @@ fun CountdownTimerScreen(
                 Spacer(Modifier.height(24.dp))
             }
 
-            // Đồng hồ tròn
             Box(contentAlignment = Alignment.Center) {
                 Canvas(modifier = Modifier.size(280.dp)) {
                     drawArc(
