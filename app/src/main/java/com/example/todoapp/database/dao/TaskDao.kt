@@ -62,5 +62,7 @@ interface TaskDao {
     """)
     fun getTasksByTagId(tagId: Int): Flow<List<TaskWithTags>>
 
+    @Query("SELECT * FROM tasks WHERE dueDate IS NOT NULL")
+    fun getAllTasks(): Flow<List<TaskEntity>>
 
 }
