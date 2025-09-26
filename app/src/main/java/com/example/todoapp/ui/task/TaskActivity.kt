@@ -1,10 +1,9 @@
 package com.example.todoapp.ui.task
 
-import android.annotation.SuppressLint
 import android.util.Log
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,7 +34,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
@@ -43,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.room.util.TableInfo
 import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.FractionalThreshold
 import androidx.wear.compose.material.rememberSwipeableState
@@ -51,6 +53,7 @@ import com.example.todoapp.database.entities.TagEntity
 import com.example.todoapp.database.entities.TaskEntity
 import com.example.todoapp.database.entities.TaskTagEntity
 import com.example.todoapp.database.entities.TaskWithTags
+import com.example.todoapp.helper.CommonHelper
 import com.example.todoapp.viewmodel.TaskViewModel
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -65,6 +68,7 @@ fun TaskScreen(taskViewModel: TaskViewModel, navController: NavController, listI
     var note by remember { mutableStateOf("") }
     var selectedTags = remember { mutableStateListOf<TagEntity>() }
     val coroutineScope = rememberCoroutineScope()
+    var dueDateValue by remember { mutableStateOf("") }
     LaunchedEffect(listId) {
         taskViewModel.getTaskWithTags(listId).collect { items ->
             val sortedItem = items.sortedBy { it.task.status }
@@ -84,6 +88,7 @@ fun TaskScreen(taskViewModel: TaskViewModel, navController: NavController, listI
                     selectedTags.clear()
                     selectedTags.addAll(it.tags)
                     Log.d("Check selectedTag:", "$selectedTags")
+                    dueDateValue = it.task.dueDate ?: ""
                 }
             }
         }
@@ -112,6 +117,7 @@ fun TaskScreen(taskViewModel: TaskViewModel, navController: NavController, listI
         Column(
             modifier = Modifier
                 .padding(innerPadding)
+                .fillMaxSize()
                 .background(Color(0xFFFFFFFF))
         ) {
             tasks.forEach { taskWithTag ->
@@ -123,7 +129,12 @@ fun TaskScreen(taskViewModel: TaskViewModel, navController: NavController, listI
                             editTaskId = taskWithTag.task.taskId ?: -1
                             isShowModalSheetAddTask = true
                         },
-                        onToggle = { checked -> taskViewModel.updateTaskStatus(taskWithTag.task.taskId!!, checked) }
+                        onToggle = { checked ->
+                            taskViewModel.updateTaskStatus(
+                                taskWithTag.task.taskId!!,
+                                checked
+                            )
+                        }
                     )
                 }
             }
@@ -135,6 +146,7 @@ fun TaskScreen(taskViewModel: TaskViewModel, navController: NavController, listI
                 onDismissRequest = {
                     taskName = ""
                     note = ""
+                    dueDateValue = ""
                     selectedTags.clear()
                     isShowModalSheetAddTask = false
                     editTaskId = -1
@@ -150,15 +162,18 @@ fun TaskScreen(taskViewModel: TaskViewModel, navController: NavController, listI
                     note = note,
                     onNoteChange = { note = it },
                     listTags = selectedTags.toList(),
+                    dueDate = dueDateValue,
+                    onDueDateChange = { dueDate -> dueDateValue = dueDate },
                     onConfirm = { listTag ->
                         coroutineScope.launch {
                             if (editTaskId == -1) {
-                                // Add new task
                                 val taskId = taskViewModel.insertTask(
                                     TaskEntity(
                                         listId = listId,
                                         taskName = taskName,
-                                        note = note
+                                        note = note,
+                                        createdAt = CommonHelper.getCurrentDate(),
+                                        dueDate = dueDateValue
                                     )
                                 ).toInt()
                                 listTag.forEach { tag ->
@@ -170,13 +185,14 @@ fun TaskScreen(taskViewModel: TaskViewModel, navController: NavController, listI
                                     )
                                 }
                             } else {
-                                // Update existing task
                                 taskViewModel.updateTask(
                                     TaskEntity(
                                         taskId = editTaskId,
                                         listId = listId,
                                         taskName = taskName,
-                                        note = note
+                                        note = note,
+                                        createdAt = CommonHelper.getCurrentDate(),
+                                        dueDate = dueDateValue
                                     )
                                 )
                                 taskViewModel.deleteTaskTagByTaskId(editTaskId)
@@ -192,6 +208,7 @@ fun TaskScreen(taskViewModel: TaskViewModel, navController: NavController, listI
                             taskName = ""
                             note = ""
                             selectedTags.clear()
+                            dueDateValue = ""
                             isShowModalSheetAddTask = false
                             editTaskId = -1
                         }
@@ -208,7 +225,7 @@ fun TaskItem(
     taskWithTags: TaskWithTags,
     onDelete: (TaskEntity) -> Unit,
     onEdit: (TaskEntity) -> Unit,
-    onToggle: (Boolean) -> Unit
+    onToggle: (Boolean) -> Unit,
 ) {
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val maxSwipe = 300f
@@ -281,6 +298,22 @@ fun TaskItem(
                         .padding(4.dp)
                 )
             }
+        }
+        Canvas(modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .align(Alignment.BottomCenter)
+            .padding(start = 20.dp, end = 20.dp)
+        ) {
+            drawLine(
+                color = Color(0xFF969696),
+                start = Offset(0f, 0f),
+                end = Offset(size.width, 0f),
+                pathEffect = PathEffect.dashPathEffect(
+                    intervals = floatArrayOf(26f, 16f),
+                    phase = 0f
+                )
+            )
         }
     }
 }
