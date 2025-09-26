@@ -28,7 +28,7 @@ fun DrawerScreen(
     projectSection: @Composable () -> Unit?,
     onAddNewProject: () -> Unit,
     onProjectViewByTag: () -> Unit,
-    onProjectViewByDueDate: () -> Unit,
+    onTaskViewByDueDate: () -> Unit,
     onPomodoroMode: () -> Unit,
     onTag: () -> Unit,
     onDeletedProjectView: () -> Unit
@@ -107,7 +107,7 @@ fun DrawerScreen(
             R.drawable.ic_lock,
             text = "Xem nhiệm vụ đến hạn",
             modifier = Modifier
-                .clickable { onProjectViewByDueDate() }
+                .clickable { onTaskViewByDueDate() }
         )
         OperationCustom(
             R.drawable.ic_countdown,
