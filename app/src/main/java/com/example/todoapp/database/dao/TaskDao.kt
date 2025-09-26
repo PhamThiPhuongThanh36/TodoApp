@@ -7,10 +7,12 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import com.example.todoapp.database.entities.DeletedTaskEntity
 import com.example.todoapp.database.entities.TagEntity
 import com.example.todoapp.database.entities.TaskEntity
 import com.example.todoapp.database.entities.TaskTagEntity
 import com.example.todoapp.database.entities.TaskWithTags
+import com.example.todoapp.model.TaskWithListAndProject
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -64,5 +66,23 @@ interface TaskDao {
 
     @Query("SELECT * FROM tasks WHERE dueDate IS NOT NULL")
     fun getAllTasks(): Flow<List<TaskEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertDeletedTask(deletedTask: DeletedTaskEntity)
+
+    @Query("DELETE FROM deleted_tasks WHERE taskId = :taskId")
+    suspend fun restoreTask(taskId: Int)
+
+    @Transaction
+    @Query("""
+        SELECT deleted_tasks.taskId, deleted_tasks.taskName, deleted_tasks.listId, lists.listName, lists.projectId, projects.projectName
+        FROM deleted_tasks
+        INNER JOIN lists ON deleted_tasks.listId = lists.listId
+        INNER JOIN projects ON lists.projectId = projects.projectId
+    """)
+    fun getTasksWithListAndProject(): Flow<List<TaskWithListAndProject>>
+
+    @Query("SELECT * FROM deleted_tasks WHERE taskId = :taskId")
+    fun getDeletedTaskById(taskId: Int): Flow<DeletedTaskEntity?>
 
 }

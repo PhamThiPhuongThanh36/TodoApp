@@ -1,0 +1,16 @@
+package com.example.todoapp.database.entities
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "deleted_tasks")
+data class DeletedTaskEntity(
+    @PrimaryKey(autoGenerate = true)
+    val taskId: Int? = null,
+    val listId: Int? = null,
+    val taskName: String,
+    val status: Boolean = false,
+    val note: String? = null,
+    val createdAt: String? = null,
+    val dueDate: String? = null
+)

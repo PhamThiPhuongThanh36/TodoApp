@@ -9,6 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.todoapp.database.dao.ListDao
 import com.example.todoapp.database.dao.ProjectDao
 import com.example.todoapp.database.dao.TaskDao
+import com.example.todoapp.database.entities.DeletedTaskEntity
 import com.example.todoapp.database.entities.ListEntity
 import com.example.todoapp.database.entities.ProjectEntity
 import com.example.todoapp.database.entities.TagEntity
@@ -21,9 +22,10 @@ import com.example.todoapp.database.entities.TaskTagEntity
         ListEntity::class,
         TaskEntity::class,
         TagEntity::class,
-        TaskTagEntity::class
+        TaskTagEntity::class,
+        DeletedTaskEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
