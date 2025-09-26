@@ -6,16 +6,19 @@ import com.example.todoapp.database.entities.TagEntity
 import com.example.todoapp.database.entities.TaskEntity
 import com.example.todoapp.database.entities.TaskTagEntity
 import com.example.todoapp.database.entities.TaskWithTags
+import com.example.todoapp.helper.CommonHelper
 import com.example.todoapp.repository.TaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class TaskViewModel @Inject constructor(
-    private val repository: TaskRepository
-): ViewModel() {
+    private val repository: TaskRepository,
+) : ViewModel() {
     fun getTasksByListId(listId: Int): Flow<List<TaskEntity>> {
         return repository.getTasksByListId(listId)
     }
@@ -78,5 +81,46 @@ class TaskViewModel @Inject constructor(
 
     fun getTaskWithTagsById(taskId: Int): Flow<TaskWithTags?> {
         return repository.getTaskWithTagsById(taskId)
+    }
+
+    fun getAllTasks(): Flow<List<TaskEntity>> {
+        return repository.getAllTasks()
+    }
+
+    fun getUpComingTasks(): Flow<List<TaskEntity>> {
+        return getAllTasks().map {
+            it.filter { task ->
+                !task.dueDate.isNullOrBlank()
+                        &&
+                !CommonHelper.dateDifferent(
+                    date1 = CommonHelper.getCurrentDate(),
+                    date2 = task.dueDate ?: ""
+                ).isNegative
+            }.sortedBy {
+                it.status
+            }
+        }
+    }
+
+    fun getOverdueTasks(): Flow<List<TaskEntity>> {
+        return getAllTasks().map {
+            it.filter { task ->
+                !task.dueDate.isNullOrBlank()
+                        &&
+                CommonHelper.dateDifferent(
+                    date1 = CommonHelper.getCurrentDate(),
+                    date2 = task.dueDate ?: ""
+                ).isNegative
+            }.sortedBy {
+                it.status
+            }
+        }
+    }
+    fun getTasksWithoutDueDate(): Flow<List<TaskEntity>> {
+        return getAllTasks().map {
+            it.filter { task ->
+                task.dueDate.isNullOrBlank()
+            }
+        }
     }
 }
