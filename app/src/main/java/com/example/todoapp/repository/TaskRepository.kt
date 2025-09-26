@@ -1,10 +1,12 @@
 package com.example.todoapp.repository
 
 import com.example.todoapp.database.dao.TaskDao
+import com.example.todoapp.database.entities.DeletedTaskEntity
 import com.example.todoapp.database.entities.TagEntity
 import com.example.todoapp.database.entities.TaskEntity
 import com.example.todoapp.database.entities.TaskTagEntity
 import com.example.todoapp.database.entities.TaskWithTags
+import com.example.todoapp.model.TaskWithListAndProject
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -66,4 +68,20 @@ class TaskRepository @Inject constructor(
     fun getAllTasks(): Flow<List<TaskEntity>> {
         return taskDao.getAllTasks()
     }
+
+    suspend fun insertDeletedTask(deletedTask: DeletedTaskEntity) {
+        taskDao.insertDeletedTask(deletedTask)
+    }
+
+    suspend fun restoreTask(taskId: Int) {
+        taskDao.restoreTask(taskId)
+    }
+
+    fun getTasksWithListAndProject(): Flow<List<TaskWithListAndProject>> {
+        return taskDao.getTasksWithListAndProject()
+    }
+    
+    fun getDeletedTaskById(taskId: Int): Flow<DeletedTaskEntity?> {
+        return taskDao.getDeletedTaskById(taskId)
+        }
 }
