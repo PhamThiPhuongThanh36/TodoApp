@@ -62,4 +62,8 @@ class TaskRepository @Inject constructor(
     fun getTasksByTagId(tagId: Int): Flow<List<TaskWithTags?>> {
         return taskDao.getTasksByTagId(tagId)
     }
+    
+    fun getAllTasks(): Flow<List<TaskEntity>> {
+        return taskDao.getAllTasks()
+    }
 }
