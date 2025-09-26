@@ -1,4 +1,4 @@
-package com.example.todoapp.ui.alarm
+package com.example.todoapp.ui.task
 
 import com.example.todoapp.R
 import android.annotation.SuppressLint
@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 
 @SuppressLint("ServiceCast", "ScheduleExactAlarm")
 @Composable
-fun ProjectViewByDueDate(taskViewModel: TaskViewModel) {
+fun TaskViewByDueDate(taskViewModel: TaskViewModel) {
     val comingTasks = taskViewModel.getUpComingTasks().collectAsState(emptyList())
     val overDueTasks = taskViewModel.getOverdueTasks().collectAsState(emptyList())
     val tasksWithoutDueDate = taskViewModel.getTasksWithoutDueDate().collectAsState(emptyList())
@@ -65,7 +65,7 @@ fun ProjectViewByDueDate(taskViewModel: TaskViewModel) {
                         )
                     )
                 )
-                .padding(top = 20.dp, bottom = 20.dp)
+                .padding(top = 20.dp)
         ) {
             Column(
                 modifier = Modifier
@@ -73,6 +73,8 @@ fun ProjectViewByDueDate(taskViewModel: TaskViewModel) {
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(start = 20.dp)
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_list2),
