@@ -1,6 +1,7 @@
 package com.example.todoapp.ui.task
 
 import android.util.Log
+import android.widget.DatePicker
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -28,6 +31,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -41,6 +45,7 @@ import com.example.todoapp.ui.common.TagItem
 import com.example.todoapp.ui.common.TextFieldCustom
 import com.example.todoapp.viewmodel.TaskViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTaskScreen(
     taskViewModel: TaskViewModel,
@@ -49,17 +54,22 @@ fun AddTaskScreen(
     note: String,
     onNoteChange: (String) -> Unit = {},
     listTags: List<TagEntity>,
+    dueDate: String = "",
+    onDueDateChange: (String) -> Unit = {},
     onConfirm: (List<TagEntity>) -> Unit,
 ) {
     Log.d("listTag: ", "$listTags")
     var isShowAddTagDialog by remember { mutableStateOf(false) }
-
+    val context = LocalContext.current
     val selectedTagState = remember { mutableStateListOf<TagEntity>() }
+    var dueDateValue by remember { mutableStateOf("") }
     val tags = taskViewModel.getTags()
         .collectAsState(initial = listOf()).value.filter { tag -> !selectedTagState.contains(tag) }
+    var isShowDatePicker by remember { mutableStateOf(false) }
 
-    LaunchedEffect(listTags) {
+    LaunchedEffect(listTags, dueDate) {
         selectedTagState.addAll(listTags)
+        dueDateValue = dueDate
     }
 
     Column(
@@ -94,7 +104,10 @@ fun AddTaskScreen(
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Button(
-                    onClick = { onConfirm(selectedTagState) },
+                    onClick = {
+                        onConfirm(selectedTagState)
+                        onDueDateChange(dueDateValue)
+                    },
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFFFFFFF),
@@ -192,6 +205,9 @@ fun AddTaskScreen(
                     .padding(top = 10.dp, bottom = 10.dp)
             )
             Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { isShowDatePicker = true}
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_calendar),
@@ -207,8 +223,9 @@ fun AddTaskScreen(
                         modifier = Modifier
                             .padding(bottom = 10.dp)
                     )
+                    Log.d("dueDate: ", "$dueDateValue")
                     Text(
-                        text = "Chưa đặt ngày đến hạn"
+                        text = if (dueDateValue.isNotEmpty()) dueDateValue else "Chưa đặt ngày đến hạn"
                     )
                 }
             }
@@ -260,11 +277,32 @@ fun AddTaskScreen(
                 }
             )
         }
+        if (isShowDatePicker) {
+            val calendar = java.util.Calendar.getInstance()
+            val year = calendar.get(java.util.Calendar.YEAR)
+            val month = calendar.get(java.util.Calendar.MONTH)
+            val day = calendar.get(java.util.Calendar.DAY_OF_MONTH)
+
+            val datePickerDialog = android.app.DatePickerDialog(
+                context,
+                { _: DatePicker, selectedYear: Int, selectedMonth: Int, selectedDay: Int ->
+                    val selectedDate = java.util.Calendar.getInstance()
+                    selectedDate.set(selectedYear, selectedMonth, selectedDay)
+                    val dateFormat = java.text.SimpleDateFormat("dd-MM-yyyy", java.util.Locale.getDefault())
+                    dueDateValue = dateFormat.format(selectedDate.time)
+                    isShowDatePicker = false
+                },
+                year,
+                month,
+                day
+            )
+            datePickerDialog.show()
+        }
     }
 }
 
 @Preview
 @Composable
 fun AddTaskScreenPreview() {
-    AddTaskScreen(hiltViewModel(), "", {}, "", {}, listOf(), {})
+    AddTaskScreen(hiltViewModel(), "", {}, "", {}, listOf(), "", {}, {})
 }
