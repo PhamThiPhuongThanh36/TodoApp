@@ -1,6 +1,5 @@
 package com.example.todoapp.ui.main
 
-import android.util.Log
 import androidx.activity.ComponentActivity
 import com.example.todoapp.R
 import androidx.compose.foundation.clickable
@@ -26,7 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -42,8 +40,9 @@ import androidx.navigation.navDeepLink
 import com.example.todoapp.database.entities.ProjectEntity
 import com.example.todoapp.database.entities.TagEntity
 import com.example.todoapp.helper.DataStoreHelper
+import com.example.todoapp.ui.DeletedTasksScreen
 import com.example.todoapp.ui.alarm.CountdownTimerScreen
-import com.example.todoapp.ui.alarm.ProjectViewByDueDate
+import com.example.todoapp.ui.task.TaskViewByDueDate
 import com.example.todoapp.ui.common.DialogCustom
 import com.example.todoapp.ui.common.OperationCustom
 import com.example.todoapp.ui.common.TagDialogCustom
@@ -136,9 +135,9 @@ fun HomeScreen(
                         drawerState.close()
                     }
                 },
-                onProjectViewByDueDate = {
+                onTaskViewByDueDate = {
                     coroutineScope.launch {
-                        navController.navigate("projectViewByDueDate")
+                        navController.navigate("taskViewByDueDate")
                         drawerState.close()
                     }
                 },
@@ -150,7 +149,10 @@ fun HomeScreen(
                 },
                 onTag = { isShowAddTagDialog = true },
                 onDeletedProjectView = {
-                    coroutineScope.launch { drawerState.close() }
+                    coroutineScope.launch {
+                        navController.navigate("deletedTaskView")
+                        drawerState.close()
+                    }
                 }
             )
         },
@@ -249,7 +251,7 @@ fun NavGraph(
         }
         composable("emptyProject") { EmptyProject() }
         composable("taskViewByTag") { TaskViewByTagScreen(taskViewModel) }
-        composable("projectViewByDueDate") { ProjectViewByDueDate(taskViewModel) }
+        composable("taskViewByDueDate") { TaskViewByDueDate(taskViewModel) }
         composable(
             route = "countdown?isRinging={isRinging}",
             arguments = listOf(
@@ -266,5 +268,6 @@ fun NavGraph(
         ) { backStackEntry ->
             CountdownTimerScreen(activity = activity, navBackStackEntry = backStackEntry)
         }
+        composable("deletedTaskView") { DeletedTasksScreen(taskViewModel) }
     }
 }
