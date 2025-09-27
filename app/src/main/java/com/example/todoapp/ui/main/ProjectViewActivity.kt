@@ -3,6 +3,7 @@ package com.example.todoapp.ui.main
 import com.example.todoapp.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,6 +36,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -66,21 +68,13 @@ fun ProjectViewScreen(projectViewModel: ProjectViewModel, listViewModel: ListVie
             projectId = DataStoreHelper.getCurrentProjectId(context)
         }
         val currentProject = projectViewModel.getProjectById(projectId).collectAsState(initial = null)
-        val currentList = listViewModel.getListsByProjectId(projectId).collectAsState(initial = emptyList())
-        val lists = remember { mutableStateListOf<List?>() }
-        val pagerState = rememberPagerState( pageCount = { lists.size } )
+        val currentList = listViewModel.getListsByProjectId(projectId).collectAsState(initial = emptyList()).value
+        val pagerState = rememberPagerState( pageCount = { currentList.size } )
         var isShowDialogAddList by remember { mutableStateOf(false) }
+        var isShowDialogEditList by remember { mutableStateOf(false) }
+        var editList by remember { mutableStateOf<ListEntity?>(null) }
         var newList by remember { mutableStateOf("") }
         var version by remember { mutableStateOf(0) }
-        fun getLists() {
-            lists.clear()
-            currentList.value.map {
-                List(it.listName)
-            }.let { lists.addAll(it) }
-        }
-        LaunchedEffect( version, currentList.value ) {
-            getLists()
-        }
         Box(
             contentAlignment = Alignment.BottomEnd,
             modifier = Modifier
@@ -123,7 +117,7 @@ fun ProjectViewScreen(projectViewModel: ProjectViewModel, listViewModel: ListVie
                     modifier = Modifier
                         .fillMaxWidth()
                 ) {
-                    if (lists.isNotEmpty()) {
+                    if (currentList.isNotEmpty()) {
                         ScrollableTabRow(
                             selectedTabIndex = pagerState.currentPage,
                             containerColor = Color.Transparent,
@@ -131,18 +125,26 @@ fun ProjectViewScreen(projectViewModel: ProjectViewModel, listViewModel: ListVie
                             modifier = Modifier
                                 .weight(1f)
                         ) {
-                            lists.forEachIndexed { index, list ->
+                            currentList.forEachIndexed { index, list ->
                                 Tab(
                                     selected = pagerState.currentPage == index,
-                                    onClick = {
-                                        coroutineScope.launch {
-                                            pagerState.animateScrollToPage(index)
-                                        }
-                                    },
+                                    onClick = { },
                                     text = {
                                         Text(
-                                            list?.listName ?: "",
+                                            list.listName,
                                             maxLines = 1,
+                                            modifier = Modifier
+                                            .combinedClickable(
+                                                onLongClick = {
+                                                    editList = list
+                                                    isShowDialogEditList = true
+                                                },
+                                                onClick = {
+                                                    coroutineScope.launch {
+                                                        pagerState.animateScrollToPage(index)
+                                                    }
+                                                }
+                                            )
                                         )
                                     },
                                     modifier = Modifier
@@ -170,9 +172,8 @@ fun ProjectViewScreen(projectViewModel: ProjectViewModel, listViewModel: ListVie
         HorizontalPager(
             state = pagerState,
             userScrollEnabled = false
-        ) {
-            page ->
-            currentList.value[page].listId?.let { TaskScreen(taskViewModel, navController, it) }
+        ) { page ->
+            currentList[page].listId?.let { TaskScreen(taskViewModel, navController, it) }
         }
         if (isShowDialogAddList) {
             DialogCustom(
@@ -194,6 +195,36 @@ fun ProjectViewScreen(projectViewModel: ProjectViewModel, listViewModel: ListVie
                     newList = ""
                     version ++
                     isShowDialogAddList = false
+                }
+            )
+        }
+        if (isShowDialogEditList) {
+            DialogCustom(
+                title = "Chỉnh sửa list",
+                label = "Tên list",
+                value = editList?.listName ?: "",
+                onValueChange = { newValue ->
+                    editList = editList?.copy(listName = newValue)
+                },
+                onDelete = {
+                    Text(
+                        text = "Xóa",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = Color(0xFFE40000),
+                        modifier = Modifier
+                            .clickable {
+                                listViewModel.deleteList(editList?.listId ?: -1)
+                                isShowDialogEditList = false
+                            }
+                    )
+                },
+                onDismiss = {
+                    isShowDialogEditList = false
+                },
+                onConfirm = {
+                    editList?.let { listViewModel.updateList(it) }
+                    isShowDialogEditList = false
                 }
             )
         }
