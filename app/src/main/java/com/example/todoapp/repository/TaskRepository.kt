@@ -1,7 +1,6 @@
 package com.example.todoapp.repository
 
 import com.example.todoapp.database.dao.TaskDao
-import com.example.todoapp.database.entities.DeletedTaskEntity
 import com.example.todoapp.database.entities.TagEntity
 import com.example.todoapp.database.entities.TaskEntity
 import com.example.todoapp.database.entities.TaskTagEntity
@@ -69,19 +68,19 @@ class TaskRepository @Inject constructor(
         return taskDao.getAllTasks()
     }
 
-    suspend fun insertDeletedTask(deletedTask: DeletedTaskEntity) {
-        taskDao.insertDeletedTask(deletedTask)
+    suspend fun insertDeletedTask(taskId: Int) {
+        taskDao.insertDeletedTask(taskId)
     }
 
     suspend fun restoreTask(taskId: Int) {
         taskDao.restoreTask(taskId)
     }
 
+    fun getDeletedTasks(): Flow<List<TaskEntity>> {
+        return taskDao.getDeletedTasks()
+    }
+
     fun getTasksWithListAndProject(): Flow<List<TaskWithListAndProject>> {
         return taskDao.getTasksWithListAndProject()
     }
-    
-    fun getDeletedTaskById(taskId: Int): Flow<DeletedTaskEntity?> {
-        return taskDao.getDeletedTaskById(taskId)
-        }
 }
