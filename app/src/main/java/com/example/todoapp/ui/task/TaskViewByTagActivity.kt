@@ -58,9 +58,8 @@ fun TaskViewByTagScreen(taskViewModel: TaskViewModel) {
         if (selectedTag != null) {
             LaunchedEffect(selectedTag) {
                 taskViewModel.getTasksByTagId(selectedTag!!.tagId!!).collect { list ->
-                    val sortedItem = list.sortedBy { it!!.task.status }
                     tasks.clear()
-                    tasks.addAll(sortedItem.filterNotNull())
+                    tasks.addAll(list.filterNotNull())
                 }
                 Log.d("TaskViewByTagScreen", "Tasks: $tasks")
             }
