@@ -202,7 +202,7 @@ fun TaskItemWithDueDate(task: TaskEntity, onToggle: (Boolean) -> Unit) {
             Spacer(modifier = Modifier.weight(1f))
             Text(
                 text = if (task.dueDate.isNullOrBlank()) {
-                    "Chưa đặt ngày đến hạn"
+                    "Chưa đặt hạn"
                 } else {
                     CommonHelper.dateDifferentDetail(CommonHelper.getCurrentDate(), task.dueDate)
                 }
