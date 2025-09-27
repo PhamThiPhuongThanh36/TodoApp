@@ -2,7 +2,6 @@ package com.example.todoapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.todoapp.database.entities.DeletedTaskEntity
 import com.example.todoapp.database.entities.TagEntity
 import com.example.todoapp.database.entities.TaskEntity
 import com.example.todoapp.database.entities.TaskTagEntity
@@ -21,9 +20,6 @@ import javax.inject.Inject
 class TaskViewModel @Inject constructor(
     private val repository: TaskRepository,
 ) : ViewModel() {
-    fun getTasksByListId(listId: Int): Flow<List<TaskEntity>> {
-        return repository.getTasksByListId(listId)
-    }
 
     suspend fun insertTask(task: TaskEntity): Long {
         return repository.insertTask(task)
@@ -100,6 +96,7 @@ class TaskViewModel @Inject constructor(
                 ).isNegative
             }.sortedBy {
                 it.status
+                it.dueDate
             }
         }
     }
@@ -122,13 +119,15 @@ class TaskViewModel @Inject constructor(
         return getAllTasks().map {
             it.filter { task ->
                 task.dueDate.isNullOrBlank()
+            }.sortedBy {
+                it.status
             }
         }
     }
 
-    fun insertDeletedTask(deletedTask: DeletedTaskEntity) {
+    fun insertDeletedTask(deletedTaskId: Int) {
         viewModelScope.launch {
-            repository.insertDeletedTask(deletedTask)
+            repository.insertDeletedTask(deletedTaskId)
         }
     }
 
@@ -140,9 +139,5 @@ class TaskViewModel @Inject constructor(
 
     fun getTasksWithListAndProject(): Flow<List<TaskWithListAndProject>> {
         return repository.getTasksWithListAndProject()
-    }
-
-    fun getDeletedTaskById(taskId: Int): Flow<DeletedTaskEntity?> {
-        return repository.getDeletedTaskById(taskId)
     }
 }
