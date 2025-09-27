@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "958038717701e2b2d4de66dbbb985a62",
+    "identityHash": "22fd0a51d1807c13f790dacd553b2ef2",
     "entities": [
       {
         "tableName": "projects",
@@ -58,7 +58,7 @@
       },
       {
         "tableName": "tasks",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`taskId` INTEGER PRIMARY KEY AUTOINCREMENT, `listId` INTEGER, `taskName` TEXT NOT NULL, `status` INTEGER NOT NULL, `note` TEXT, `createdAt` TEXT, `dueDate` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`taskId` INTEGER PRIMARY KEY AUTOINCREMENT, `listId` INTEGER, `taskName` TEXT NOT NULL, `status` INTEGER NOT NULL, `note` TEXT, `statusDelete` INTEGER NOT NULL, `createdAt` TEXT, `dueDate` TEXT)",
         "fields": [
           {
             "fieldPath": "taskId",
@@ -86,6 +86,12 @@
             "fieldPath": "note",
             "columnName": "note",
             "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "statusDelete",
+            "columnName": "statusDelete",
+            "affinity": "INTEGER",
+            "notNull": true
           },
           {
             "fieldPath": "createdAt",
@@ -158,60 +164,11 @@
             "tagId"
           ]
         }
-      },
-      {
-        "tableName": "deleted_tasks",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`taskId` INTEGER PRIMARY KEY AUTOINCREMENT, `listId` INTEGER, `taskName` TEXT NOT NULL, `status` INTEGER NOT NULL, `note` TEXT, `createdAt` TEXT, `dueDate` TEXT)",
-        "fields": [
-          {
-            "fieldPath": "taskId",
-            "columnName": "taskId",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "listId",
-            "columnName": "listId",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "taskName",
-            "columnName": "taskName",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "status",
-            "columnName": "status",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "note",
-            "columnName": "note",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "createdAt",
-            "columnName": "createdAt",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "dueDate",
-            "columnName": "dueDate",
-            "affinity": "TEXT"
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": true,
-          "columnNames": [
-            "taskId"
-          ]
-        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '958038717701e2b2d4de66dbbb985a62')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '22fd0a51d1807c13f790dacd553b2ef2')"
     ]
   }
 }

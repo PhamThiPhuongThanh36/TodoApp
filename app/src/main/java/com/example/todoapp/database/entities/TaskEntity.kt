@@ -11,6 +11,7 @@ data class TaskEntity(
     val taskName: String,
     val status: Boolean = false,
     val note: String? = null,
+    val statusDelete: Boolean = false,
     val createdAt: String? = null,
     val dueDate: String? = null
 )
