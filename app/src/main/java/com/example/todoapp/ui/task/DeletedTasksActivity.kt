@@ -1,5 +1,6 @@
 package com.example.todoapp.ui
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,7 +26,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,7 +35,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.todoapp.database.entities.DeletedTaskEntity
 import com.example.todoapp.database.entities.TaskEntity
 import com.example.todoapp.model.TaskWithListAndProject
 import com.example.todoapp.ui.common.ChoiceDialog
@@ -52,7 +51,7 @@ fun DeletedTasksScreen(taskViewModel: TaskViewModel) {
         var isShowChoiceDialog by remember { mutableStateOf(false) }
         var editTaskId by remember { mutableStateOf(-1) }
         val coroutineScope = rememberCoroutineScope()
-        val editTask: DeletedTaskEntity? = if (editTaskId != -1) taskViewModel.getDeletedTaskById(editTaskId).collectAsState(initial = null).value else { null }
+        val editTask = if (editTaskId != -1) taskViewModel.getTaskById(editTaskId).collectAsState(initial = null).value else { null }
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -77,6 +76,7 @@ fun DeletedTasksScreen(taskViewModel: TaskViewModel) {
             )
         }
         val tasks = taskViewModel.getTasksWithListAndProject().collectAsState(initial = emptyList())
+        Log.d("DeletedTasksScreen", "tasks: ${tasks.value}")
         LazyColumn {
             items(tasks.value.size) { index ->
                 DeletedTaskItem(
@@ -94,22 +94,11 @@ fun DeletedTasksScreen(taskViewModel: TaskViewModel) {
                 onDismiss = { isShowChoiceDialog = false },
                 onDelete = {
                     isShowChoiceDialog = false
-                    taskViewModel.restoreTask(editTaskId)
+                    taskViewModel.deleteTask(editTaskId)
                 },
                 onRestore = {
                     isShowChoiceDialog = false
                     coroutineScope.launch {
-                        taskViewModel.insertTask(
-                            TaskEntity(
-                                taskId = editTaskId,
-                                taskName = editTask?.taskName ?: "",
-                                listId = editTask?.listId ?: -1,
-                                status = editTask?.status ?: false,
-                                note = editTask?.note,
-                                createdAt = editTask?.createdAt,
-                                dueDate = editTask?.dueDate,
-                            )
-                        )
                         taskViewModel.restoreTask(editTaskId)
                     }
                 }
