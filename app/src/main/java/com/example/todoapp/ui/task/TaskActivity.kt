@@ -49,7 +49,6 @@ import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.FractionalThreshold
 import androidx.wear.compose.material.rememberSwipeableState
 import androidx.wear.compose.material.swipeable
-import com.example.todoapp.database.entities.DeletedTaskEntity
 import com.example.todoapp.database.entities.TagEntity
 import com.example.todoapp.database.entities.TaskEntity
 import com.example.todoapp.database.entities.TaskTagEntity
@@ -72,9 +71,8 @@ fun TaskScreen(taskViewModel: TaskViewModel, navController: NavController, listI
     var dueDateValue by remember { mutableStateOf("") }
     LaunchedEffect(listId) {
         taskViewModel.getTaskWithTags(listId).collect { items ->
-            val sortedItem = items.sortedBy { it.task.status }
             tasks.clear()
-            tasks.addAll(sortedItem)
+            tasks.addAll(items)
         }
     }
 
@@ -127,17 +125,9 @@ fun TaskScreen(taskViewModel: TaskViewModel, navController: NavController, listI
                         taskWithTags = taskWithTag,
                         onDelete = {
                             taskViewModel.insertDeletedTask(
-                                DeletedTaskEntity(
-                                    taskId = it.taskId,
-                                    listId = it.listId,
-                                    taskName = it.taskName,
-                                    status = it.status,
-                                    note = it.note,
-                                    createdAt = it.createdAt,
-                                    dueDate = it.dueDate
-                                )
+                                deletedTaskId = taskWithTag.task.taskId!!
                             )
-                            taskViewModel.deleteTask(it.taskId!!)
+                            Log.d("TaskScreen", "Delete task with taskId status: ${taskWithTag.task.taskId} ${taskWithTag.task.status}")
                         },
                         onEdit = {
                             editTaskId = taskWithTag.task.taskId ?: -1
