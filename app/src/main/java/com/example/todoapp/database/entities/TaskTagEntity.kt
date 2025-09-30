@@ -16,7 +16,6 @@ data class TaskTagEntity(
 
 data class TaskWithTags(
     @Embedded val task: TaskEntity,
-
     @Relation(
         parentColumn = "taskId",
         entityColumn = "tagId",
