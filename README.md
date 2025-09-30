@@ -7,7 +7,7 @@ TodoApp cho phép quản lý công việc theo **Project → List → Task**, h�
 
 ## 🚀 Tính năng chính
 - **Quản lý Project**
-  - Tạo, đổi tên, xóa Project.
+  - Thêm, sửa, xóa Project.
 - **Quản lý List**
   - Mỗi Project chứa nhiều List.
   - Thêm, sửa, xóa List.
@@ -15,9 +15,10 @@ TodoApp cho phép quản lý công việc theo **Project → List → Task**, h�
   - Thêm, sửa, xóa Task.
   - Đặt deadline, mô tả chi tiết.
   - Đánh dấu hoàn thành / chưa hoàn thành.
+  - Xem danh sách Task lọc theo List, theo Tag, theo ngày đến hạn
 - **Đồng hồ đếm ngược (Countdown Timer)**
-  - Đặt timer cho Task.
-  - Khi hết giờ → **BroadcastReceiver** phát thông báo (notification).
+  - Đặt timer.
+  - Khi hết giờ → **BroadcastReceiver** phát thông báo (notification) và báo thức.
 - **Lưu trữ dữ liệu với Room**
   - Dữ liệu được lưu local, không mất khi thoát app.
 - **UI hiện đại với Jetpack Compose**
@@ -26,47 +27,69 @@ TodoApp cho phép quản lý công việc theo **Project → List → Task**, h�
 ---
 
 ## 🛠 Công nghệ sử dụng
-- [Kotlin](https://kotlinlang.org/) – ngôn ngữ chính.
-- [Jetpack Compose](https://developer.android.com/jetpack/compose) – UI toolkit.
-- [Room](https://developer.android.com/training/data-storage/room) – ORM cho database.
-- [ViewModel](https://developer.android.com/topic/libraries/architecture/viewmodel) + [Flow](https://kotlinlang.org/docs/flow.html) – quản lý state & dữ liệu.
-- [BroadcastReceiver](https://developer.android.com/guide/components/broadcasts) + [AlarmManager](https://developer.android.com/training/scheduling/alarms) – thông báo khi countdown timer hết giờ.
-- [Navigation Compose](https://developer.android.com/jetpack/compose/navigation) – điều hướng giữa các màn hình.
+- [Kotlin – ngôn ngữ chính.
+- [Jetpack Compose]– UI toolkit.
+- [Room] – ORM cho database.
+- [ViewModel] + [Flow] – quản lý state & dữ liệu.
+- [BroadcastReceiver] + [AlarmManager] – thông báo khi countdown timer hết giờ.
+- [Navigation Compose] – điều hướng giữa các màn hình.
 
 ---
 
 ## 📂 Cấu trúc dữ liệu (Room Entities)
 ```kotlin
-@Entity
-data class Project(
-    @PrimaryKey(autoGenerate = true) val projectId: Int = 0,
-    val name: String
+@Entity(tableName = "lists")
+data class ListEntity(
+    @PrimaryKey(autoGenerate = true)
+    val listId: Int? = null,
+    val projectId: Int,
+    val listName: String,
 )
 
-@Entity(foreignKeys = [ForeignKey(
-    entity = Project::class,
-    parentColumns = ["projectId"],
-    childColumns = ["projectOwnerId"],
-    onDelete = CASCADE
-)])
-data class TaskList(
-    @PrimaryKey(autoGenerate = true) val listId: Int = 0,
-    val name: String,
-    val projectOwnerId: Int
+@Entity(tableName = "lists")
+data class ListEntity(
+    @PrimaryKey(autoGenerate = true)
+    val listId: Int? = null,
+    val projectId: Int,
+    val listName: String,
 )
 
-@Entity(foreignKeys = [ForeignKey(
-    entity = TaskList::class,
-    parentColumns = ["listId"],
-    childColumns = ["listOwnerId"],
-    onDelete = CASCADE
-)])
-data class Task(
-    @PrimaryKey(autoGenerate = true) val taskId: Int = 0,
-    val title: String,
-    val description: String? = null,
-    val isCompleted: Boolean = false,
-    val deadline: Long? = null,
-    val countdownSeconds: Int? = null,
-    val listOwnerId: Int
+@Entity(tableName = "tasks")
+data class TaskEntity(
+    @PrimaryKey(autoGenerate = true)
+    val taskId: Int? = null,
+    val listId: Int? = null,
+    val taskName: String,
+    val status: Boolean = false,
+    val note: String? = null,
+    val statusDelete: Boolean = false,
+    val createdAt: String? = null,
+    val dueDate: String? = null
+)
+
+@Entity(tableName = "tags")
+data class TagEntity(
+    @PrimaryKey(autoGenerate = true)
+    val tagId: Int? = null,
+    val tagName: String,
+    val tagColor: Long
+)
+
+@Entity(
+    tableName = "tasks_tags",
+    primaryKeys = ["taskId", "tagId"]
+)
+data class TaskTagEntity(
+    val taskId: Int,
+    val tagId: Int
+)
+
+data class TaskWithTags(
+    @Embedded val task: TaskEntity,
+    @Relation(
+        parentColumn = "taskId",
+        entityColumn = "tagId",
+        associateBy = Junction(TaskTagEntity::class)
+    )
+    val tags: List<TagEntity>
 )
