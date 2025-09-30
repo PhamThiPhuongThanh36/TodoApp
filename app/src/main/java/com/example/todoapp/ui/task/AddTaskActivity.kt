@@ -235,33 +235,6 @@ fun AddTaskScreen(
                 modifier = Modifier
                     .padding(top = 10.dp, bottom = 10.dp)
             )
-            Row(
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_bell),
-                    contentDescription = "icon tag",
-                    modifier = Modifier
-                        .padding(end = 20.dp)
-                )
-                Column {
-                    Text(
-                        text = "Loại nhắc nhở",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight(600),
-                        modifier = Modifier
-                            .padding(bottom = 10.dp)
-                    )
-                    Text(
-                        text = "Báo thức"
-                    )
-                }
-            }
-            HorizontalDivider(
-                thickness = 1.dp,
-                color = Color(0xFFC7C7C7),
-                modifier = Modifier
-                    .padding(top = 10.dp, bottom = 10.dp)
-            )
         }
         if (isShowAddTagDialog) {
             SelectedTagDialog(
