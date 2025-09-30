@@ -1,11 +1,11 @@
 # 📌 TodoApp
 
 Ứng dụng quản lý công việc được viết bằng **Kotlin** với **Jetpack Compose** và **Room**.  
-TodoApp cho phép quản lý công việc theo **Project → List → Task**, hỗ trợ **đồng hồ đếm ngược (countdown timer)** cho từng Task.  
+TodoApp cho phép quản lý công việc theo **Project → List → Task**, hỗ trợ **đồng hồ đếm ngược (countdown timer)**.  
 
 ---
 
-## 🚀 Tính năng chính
+## Tính năng chính
 - **Quản lý Project**
   - Thêm, sửa, xóa Project.
 - **Quản lý List**
@@ -13,6 +13,7 @@ TodoApp cho phép quản lý công việc theo **Project → List → Task**, h�
   - Thêm, sửa, xóa List.
 - **Quản lý Task**
   - Thêm, sửa, xóa Task.
+  - Khôi phục Task đã xóa.
   - Đặt deadline, mô tả chi tiết.
   - Đánh dấu hoàn thành / chưa hoàn thành.
   - Xem danh sách Task lọc theo List, theo Tag, theo ngày đến hạn
