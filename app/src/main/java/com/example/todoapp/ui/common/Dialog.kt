@@ -368,7 +368,7 @@ fun ChoiceDialog(onDismiss: () -> Unit = {}, onDelete: () -> Unit = {}, onRestor
             ) {
                 Text(
                     text = "Lựa chọn hành động",
-                    fontSize = 24.sp,
+                    fontSize = 18.sp,
                     color = Color(0xFFFFFFFF),
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
