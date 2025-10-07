@@ -5,6 +5,7 @@ import androidx.compose.foundation.BorderStroke
 import com.example.todoapp.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -106,7 +107,7 @@ fun TaskViewByTagScreen(taskViewModel: TaskViewModel) {
                     border = BorderStroke(1.dp, Color(0xFFC4C4C4)),
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier
-                        .width(100.dp)
+                        .width(200.dp)
                 ) {
                     tags.value.forEach { tag ->
                         DropdownMenuItem(
@@ -115,6 +116,19 @@ fun TaskViewByTagScreen(taskViewModel: TaskViewModel) {
                                 expand = false
                                 selectedTag = tag
                             },
+                            modifier = Modifier
+                                .width(200.dp),
+                            trailingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_trash),
+                                    contentDescription = "delete tag",
+                                    modifier = Modifier
+                                        .align(Alignment.End)
+                                        .clickable {
+                                            taskViewModel.deleteTag(tag)
+                                        }
+                                )
+                            }
                         )
                     }
                 }
