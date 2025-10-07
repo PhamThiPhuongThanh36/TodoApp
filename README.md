@@ -27,6 +27,32 @@ TodoApp cho phép quản lý công việc theo **Project → List → Task**, h�
 
 ---
 
+## 📱 Giao diện
+
+### HomeScreen và Đồng hồ đếm ngược
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/56443c00-8597-410d-b8b9-1a44ac1b8cbf" alt="Extra 6" width="250" />
+  <img src="https://github.com/user-attachments/assets/ce78fcd2-5c96-431f-931b-90db9b95d7c4" alt="Extra 3" width="250" />
+</p>
+
+### Thêm Tag, thêm Task và Khôi phục Task
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/b36c8ce0-45c5-48ad-aec2-dfb059f82cb1" alt="Extra 1" width="250" />
+  <img src="https://github.com/user-attachments/assets/68892036-6b3b-4e6b-b6fe-514c78a4d64d" alt="Extra 2" width="250" />
+  <img src="https://github.com/user-attachments/assets/13654209-8d82-4621-a65c-7f75ac8537be" alt="Extra 4" width="250" />
+</p>
+
+### Xem Task theo List, theo Tag, và xem Ngày đến hạn
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/01de91a1-0d3a-40aa-92df-cec4d935df2d" alt="Extra 7" width="250" />
+  <img src="https://github.com/user-attachments/assets/7478064f-6723-45d4-8079-15038a33dd08" alt="Extra 8" width="250" />
+  <img src="https://github.com/user-attachments/assets/a656f684-2d6b-4c98-bc1b-fa945cea5ed3" alt="Extra 5" width="250" />
+</p>
+
+---
+
 ## 🛠 Công nghệ sử dụng
 - [Kotlin – ngôn ngữ chính.
 - [Jetpack Compose]– UI toolkit.
