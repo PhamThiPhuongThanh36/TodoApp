@@ -38,6 +38,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -289,6 +290,7 @@ fun TaskItem(
             )
             Text(
                 text = taskWithTags.task.taskName,
+                textDecoration = if(taskWithTags.task.status) TextDecoration.LineThrough else TextDecoration.None,
                 modifier = Modifier.padding(start = 8.dp)
             )
             Spacer(modifier = Modifier.weight(1f))
