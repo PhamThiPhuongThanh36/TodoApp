@@ -44,6 +44,10 @@ class TaskRepository @Inject constructor(
         return taskDao.getTags()
     }
 
+    suspend fun deleteTag(tag: TagEntity) {
+        taskDao.deleteTag(tag)
+    }
+
     fun getTasksWithTags(listId: Int): Flow<List<TaskWithTags>> {
         return taskDao.getTasksWithTags(listId)
     }

@@ -57,6 +57,12 @@ class TaskViewModel @Inject constructor(
         return repository.getTags()
     }
 
+    fun deleteTag(tag: TagEntity) {
+        viewModelScope.launch {
+            repository.deleteTag(tag)
+        }
+    }
+
     fun getTaskWithTags(listId: Int): Flow<List<TaskWithTags>> {
         return repository.getTasksWithTags(listId)
     }

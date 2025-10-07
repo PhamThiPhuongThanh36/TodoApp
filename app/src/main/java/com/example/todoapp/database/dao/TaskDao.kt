@@ -2,6 +2,7 @@ package com.example.todoapp.database.dao
 
 import android.adservices.adid.AdId
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -48,6 +49,9 @@ interface TaskDao {
 
     @Query("SELECT * FROM tags")
     fun getTags(): Flow<List<TagEntity>>
+
+    @Delete
+    suspend fun deleteTag(tag: TagEntity)
 
     @Transaction
     @Query("SELECT * FROM tasks WHERE listId = :listId AND statusDelete = 0 ORDER BY status, createdAt DESC")
